@@ -1,0 +1,154 @@
+Twitter - Usando Php e Mysql
+Passo a passo
+
+1)Cria os front-ends da aplicação, entre elas a página Home onde é possivel logar na sessão e formulário de inscrição.
+obs:javascript do bootstrap no final do arquivo, pois é preciso esperar
+todos componentes carregarem primeiro para executar
+
+2)Enviar os dados dos formulário para um script.php, usando action="script.php" e method que pode ser post ou get, o nome do criado criado é "resgistra_usuario.php", usaremos o metódo post for ser mais seguro.
+Usar a super Global #_POST['usuario],#_POST['senha]e #_POST['nome'] no script para recuparar os dados passado, é um
+array associativo com base no name das tags no formulário.
+
+3)Gravar os dados passado no formulário, mas antes é preciso criar uma conexão entre o script php e dado de dados mysql
+
+3.1) Criar mais um script php, como nome "bd.class.php", nesse script
+ira conter informações do host,usuário,senha e bancos de dados e uma classe db
+
+3.2) Criar um banco de dados
+Create datebase twitter_clone
+
+3.3) Dentro da classe db criar uma função com chamada de conecta_mysql() e dentro da função usar uma função nativa mysqli_connect(host,usuario,senha,banco de dados),que são as informação necessaria para 
+conexão com banco de dados e usar outra função nativa msqli-set_charset para usar o caracteres no padrão portugues brasil
+
+4)Importa as informações do script.php resposável por criar a conexão com
+o bancos de dados , no caso o "db.class.php" usando o require_once(""db.class.php") e fazer a instância da classe 
+$objB= new db();
+$link = $obB->conecta_mysql();
+Isso dentro do script "resgistra_usuario.php"
+4.1) Dentro do bancos de dados "Twitter_clone", criar uma tabela
+Create table usuarios(id int not null primary key auto_increment, usuario
+vachar(50) not null,email varchar(100) not null, senha varchar(32) not null)
+usuarios
+Id
+usuario
+email
+senha
+
+4.2) No script "resgistra_usuario.php"colocar as query de inserção de dados 
+$sql = "insert into usuarios(usuario,senha,email)value('$usuario','$senha','$email')
+mysqli_query($link,$sql), agora a inserção dos  registro do usuarios no banco de dados está pronta.
+4.3)Verificar se os dados foram inseridos com sucesso
+If(mysqli_query($link,$sql)){
+ echo 'inserido com sucesso'
+}else {
+ echo 'erro ao inserir os dados no banco"
+}
+
+Revisão
+index.php: Página inicial onde é possível fazer o login com o usuário e senha ou fazer a inscrição do usuário, atráves de um link que será redirecionado para outro script
+increvase.php:É página (Frond-end), onde é possível fazer o resgistro do usuário no banco de dados, atráves do formulário
+registra_usuario.php: é o script backend onde os dados do formulário serão passado no banco de dados, usuário,senha e email.
+db.class.php:é script resposável pela criação da conexeção com o banco de dados.
+
+5)Criar um script resposável por autenticar o usuário na página home de acordo com o usuario e senha informado, "valida_acesso.php", a pagina "index.php" irá enviar via post os dados no usuario e senha para esse script.
+$_POST['senha']
+$_POST['usuário]
+
+5.1)criar um query de consultar  para verificar se usuário  e senha informada estão no banco de dados
+
+$sql ='Select *from usuario where usuario ='$usuario' and senha senha='$senha')
+obs
+//update [true/false]
+//insert[true/false]
+//select[resouse/false]
+//delete[true/false]
+ou seja, o select retornar uma resourse
+$resultado = mysqli_query($link,$sql);
+$resultado_array=mysqli_fetch_array($resultado);
+var_dump(resultado_array) // imprime um array
+
+5.2) Verificar se é true e false 
+if(resultado_array){
+  var_dump(resultado_array)
+}else{
+  echo "Erro na execução da consulta"
+}
+obs:Verifica o erro na consulta não tem relação da existência do usuário ou senha do banco de dados; se usuario não existe ou senha retorno é null, ou seja, var_dump vai exibir um array nulo.
+
+5.3)Verificar se o usuario e senha existem no banco de dados, e caso sim ou não, mandar um mensagem de acordo com o resultado
+
+if ($resultado_array){ // consulta ok
+   if(isset(resultado_array['usuario'])){  //isset:usado para saber se uma variável foi definida, se sim retorna true, caso contraio, false
+      echo 'usuario existe'
+   }else{
+      echo 'usuario não existe'
+   }
+
+}else{
+ echo 'erro de execução de consultar';
+}
+5)Verificar se o campo de usuario e senha foram devidamente preenchidos antes de ser enviado para o banco de dados, mas para isso é preciso criar um script em javascript e jquery.
+
+6)Implementar o recurso de sessão, ou seja, caso a senha e usuário estejam correta, a pagina é redirecionada para a página home, caso não correta irá para página inicial com um erro no get.
+
+6.1)usar o comando session_start(), como a primeira instrução, isso vai iniciar a sessão, pois ira conter uma função que verificar se a função está definida, pois caso nao esteja a página é redirecionada para a funçao inicial com um erro get
+session_start()
+if(!isset($_session['usuario'])){
+ header(location:index.php')
+}
+
+6.2)Criar um script sair.php com um  objetivo de encerrar a sessão no usuário quando necessário.
+session_start()
+unset($_session['usuario'])
+unset($_session['usuario'])
+7)Criptografia das senhas usando o método md5.
+usando a função md5($senha)
+No script registra_usuario na hora de enviar os dados para o banco de dados já com a criptógráfia e alterar também no momento do login no arquivo validar_acesso.php)
+
+8)Explicando mysqli_fetch_array: quando uma query retorna uma pesquisa, uma query de consulta
+Ex:$sql = " select * from usuarios", essa função tem como objetivo de associar essa pesquisa em um vetor, porém ela só retorna o primeiro valor
+da pesquisa, porém para exibir o retorno de todos elementos da pesquisa é preciso usar estrutura de repetição
+$dados_usuario = array();
+while($linha=mysqli-fetch_array($resultado_id,mysqli_assoc)){
+ $dados_usuario=$linha
+}
+9)verifica se o usuário já foi cadstrado no banco de dados.
+Dentro do arquivo, registra_usuario.php, verificar se o usuário ou email existem
+$sql = " select *from usuarios where usuarios='$usuarios'"
+
+10) criar um tabela pra colocar informações os tweets
+create table tweet(
+id_tweet int not null primiry key auto_increment;
+id_usuario int not null;
+tweet varchar (140) not null;
+data_inclusao datatime;
+default current_timestamp
+);
+11)dento no script home.php onde a página sera exibida após o autenticação, os tweet será configurado via javascript e depois será enviado para um arquivo php via ajax.
+
+11.1)Implementação de medidas de controle para impedir que os tweets vazio seja enviado para o banco de dados usando jquery e javascript
+if($('id.tweet)val()lenght>0){
+ ação
+}
+
+11.2)Incluir mais um arquivo php onde os dados dos tweets digitados seá enviado via ajax
+
+11.2)a página home.php via ajax irá enviar os dados preenchidos do campo tweet para um arquivo.php chamado incluir_tweet.php, e esse arquivo irá receber os dados e armazena no banco de dados da tabela_tweets
+
+11.3)no incluir tweets, opós incluir a conexão com o banco de dados com  requere_once, criar a query de inserção
+
+$sql ="insert into tweet(id_usuario,tweet) values(...)
+para inserir o usuário é necessario criar uma sessão no id na validação.php $_session['id_usuario']
+
+11.3) um usuarios tem vários tweet, relação de 1 para muitos
+
+12)criar um script como nome get_tweets.php, ou seja, esse script tem a função de recuperar os dados tweets e exibir na timeline da home
+
+12.1) criar um arquivo para captura os dados do tweet na ordem descrescente
+$sql="select *from tweet oder by data_inclusaoDesc";
+
+
+
+
+
+
